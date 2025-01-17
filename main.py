@@ -75,4 +75,5 @@ if st.session_state.quiz_data:
 
         st.write(f"測驗結束！你的得分是 {st.session_state.score}/{len(st.session_state.quiz_data)}")
         if st.button("再次挑戰！"):
+            st.session_state.answers = {}
             st.session_state.clear()
