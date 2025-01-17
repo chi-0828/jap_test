@@ -31,24 +31,48 @@ katakana_chart = {
 # Streamlit App
 st.title("日語五十音測驗")
 
+
+# 重置測驗的功能
+if st.button("重來一次"):
+    st.session_state.clear()
+
+
+# 初始化 Session State
+if "quiz_data" not in st.session_state:
+    st.session_state.quiz_data = []
+    st.session_state.answers = {}
+    st.session_state.score = 0
+
+
+
 # 輸入題目數量
-num_questions = st.number_input("請輸入每種題目的題數：", min_value=1, step=1, value=5)
+num_questions = st.number_input("請輸入平假名與片假名題目的個別題數：", min_value=1, step=1, value=2)
 
 if st.button("開始測驗"):
     hiragana_quiz = random.sample(list(hiragana_chart.items()), num_questions)
     katakana_quiz = random.sample(list(katakana_chart.items()), num_questions)
-    quiz_data = hiragana_quiz + katakana_quiz
-    random.shuffle(quiz_data)
+    st.session_state.quiz_data = hiragana_quiz + katakana_quiz
+    random.shuffle(st.session_state.quiz_data)
+    st.session_state.answers = {}
+    st.session_state.score = 0
 
-    score = 0
+# 顯示測驗問題
+if st.session_state.quiz_data:
+    st.write("請輸入你的答案：")
+    for i, (character, correct_answer) in enumerate(st.session_state.quiz_data, start=1):
+        user_input = st.text_input(f"{i}. {character}", key=f"q{i}")
+        st.session_state.answers[f"q{i}"] = user_input
 
-    for i, (character, correct_answer) in enumerate(quiz_data, start=1):
-        user_answer = st.text_input(f"{i}. {character}", key=f"q{i}")
-        if user_answer:
-            if user_answer.strip().lower() == correct_answer:
-                st.write(f"\u2714 正確! ({correct_answer})")
-                score += 1
+    if st.button("提交答案"):
+        st.session_state.score = 0
+        for i, (character, correct_answer) in enumerate(st.session_state.quiz_data, start=1):
+            user_input = st.session_state.answers.get(f"q{i}", "")
+            if user_input.strip().lower() == correct_answer:
+                st.write(f"{i}. {character}: ✔ 正確! ({correct_answer})")
+                st.session_state.score += 1
             else:
-                st.write(f"\u274C 錯誤! 正確答案是: {correct_answer}")
+                st.write(f"{i}. {character}: ❌ 錯誤! 正確答案是: {correct_answer}")
 
-    st.write(f"測驗結束！你的得分是 {score}/{len(quiz_data)}")
+        st.write(f"測驗結束！你的得分是 {st.session_state.score}/{len(st.session_state.quiz_data)}")
+        if st.button("再次挑戰！"):
+            st.session_state.clear()
